@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Kiosk – More 5-star Google reviews from a QR code</title>
+<meta name="description" content="Put a QR code on your counter. Happy customers get an AI-written Google review ready to post. Unhappy ones message you privately.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B1024;--panel:#141B3A;--line:#263061;--text:#EAF0FF;--muted:#9AA6CC;--star:#FFB93B;--violet:#6C5CFF;--teal:#2FD6C0;
+--display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:400 17px/1.6 var(--body);overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--star);outline-offset:3px;border-radius:6px}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.aurora i{position:absolute;width:55vmax;height:55vmax;border-radius:50%;filter:blur(90px);opacity:.38;animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){background:var(--violet);top:-25vmax;left:-15vmax}
+.aurora i:nth-child(2){background:var(--teal);opacity:.22;bottom:-30vmax;right:-15vmax;animation-duration:28s}
+@keyframes drift{to{transform:translate(9vmax,6vmax) scale(1.15)}}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+header{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.logo{font:800 22px var(--display);text-decoration:none;letter-spacing:-.02em}
+.logo span{color:var(--star)}
+.btn{display:inline-block;background:var(--star);color:#1B1300;font:700 16px var(--body);padding:14px 26px;border-radius:999px;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,185,59,.35)}
+.btn.small{padding:9px 18px;font-size:15px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:56px 0 88px}
+h1{font:800 clamp(38px,5.6vw,66px)/1.02 var(--display);letter-spacing:-.035em;margin-bottom:22px}
+.lead{color:var(--muted);font-size:19px;max-width:30em;margin-bottom:32px}
+.note{margin-top:14px;color:var(--muted);font-size:15px}
+/* phone demo */
+.phone{width:290px;height:560px;margin:0 auto;background:#070B1B;border:2px solid var(--line);border-radius:38px;padding:14px;box-shadow:0 30px 80px rgba(108,92,255,.35),0 0 0 8px rgba(255,255,255,.03);position:relative}
+.screen{height:100%;background:var(--panel);border-radius:26px;padding:22px 18px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.step{position:absolute;inset:22px 18px;display:flex;flex-direction:column;justify-content:center;gap:14px;opacity:0;transform:translateY(10px);transition:opacity .45s,transform .45s;pointer-events:none}
+.step.on{opacity:1;transform:none}
+.qr{width:150px;height:150px;margin:0 auto;background:#fff;border-radius:14px;padding:12px;position:relative}
+.qr svg{width:100%;height:100%}
+.scan{position:absolute;left:8px;right:8px;height:3px;background:var(--teal);box-shadow:0 0 14px var(--teal);border-radius:3px;animation:scan 1.6s ease-in-out infinite alternate}
+@keyframes scan{from{top:10px}to{top:136px}}
+.cap{text-align:center;color:var(--muted);font-size:14px}
+.q{font:700 20px/1.2 var(--display);text-align:center}
+.opt{border:1.5px solid var(--line);border-radius:14px;padding:13px;text-align:center;font-weight:600;font-size:15px;transition:.3s}
+.opt.pick{background:var(--star);border-color:var(--star);color:#1B1300}
+.tag{align-self:center;background:rgba(108,92,255,.25);color:#C9C2FF;font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:999px}
+.rev{background:#0B1024;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:14.5px;line-height:1.5;min-height:118px}
+.rev b{display:inline-block;width:2px;height:1em;background:var(--teal);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.stars{text-align:center;font-size:26px;letter-spacing:4px;color:#3A4577}
+.stars.full{color:var(--star)}
+.post{background:var(--star);color:#1B1300;text-align:center;border-radius:12px;padding:12px;font-weight:700;font-size:15px;opacity:.35;transition:.4s}
+.post.ready{opacity:1}
+/* sections */
+section{padding:72px 0;border-top:1px solid var(--line)}
+h2{font:800 clamp(28px,3.6vw,42px)/1.1 var(--display);letter-spacing:-.03em;margin-bottom:36px;max-width:16em}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;list-style:none;padding:0}
+.steps li{padding-top:18px;border-top:3px solid var(--star)}
+.steps h3,.feat h3{font:700 21px var(--display);margin-bottom:8px;letter-spacing:-.01em}
+.steps p,.feat p{color:var(--muted)}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:34px 56px}
+.cta{text-align:center;padding:96px 0}
+.cta h2{margin:0 auto 26px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:14.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:24px}.steps,.feat{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.aurora i,.scan,.rev b{animation:none}.step{transition:none}}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i></div>
+<div class="wrap">
+<header>
+  <a class="logo" href="#">Review<span>Kiosk</span></a>
+  <a class="btn small go" href="#">Start free</a>
+</header>
+
+<main>
+<div class="hero">
+  <div>
+    <h1>Turn happy customers into 5-star Google reviews.</h1>
+    <p class="lead">Put a QR code on your counter. Happy customers get an AI-written review, ready to post in one tap. Unhappy customers message you privately instead of writing it online.</p>
+    <a class="btn go" href="#">Start free</a>
+    <p class="note">No app to install. Set up in about 2 minutes.</p>
+  </div>
+  <div class="phone" role="img" aria-label="Animated demo: a customer scans a QR code, says they loved their visit, and an AI-written Google review appears ready to post.">
+    <div class="screen">
+      <div class="step" id="s1">
+        <div class="qr"><svg viewBox="0 0 21 21" shape-rendering="crispEdges"><path fill="#0B1024" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM8 1h2v2H8zM11 3h2v2h-2zM8 6h3v2H8zM12 8h2v2h-2zM15 9h3v2h-3zM9 10h2v3H9zM12 12h3v2h-3zM16 13h2v3h-2zM19 12h2v2h-2zM8 15h3v2H8zM12 16h2v3h-2zM15 18h3v2h-3zM9 19h2v2H9zM0 9h3v2H0zM4 10h2v2H4z"/></svg><div class="scan"></div></div>
+        <p class="cap">Customer scans the QR code on your counter</p>
+      </div>
+      <div class="step" id="s2">
+        <p class="q">How was your visit?</p>
+        <div class="opt" id="o1">I loved it</div>
+        <div class="opt" id="o2">It could be better</div>
+      </div>
+      <div class="step" id="s3">
+        <span class="tag">AI is writing your review</span>
+        <div class="rev" id="rev"></div>
+        <div class="stars" id="stars">★★★★★</div>
+        <div class="post" id="post">Post on Google</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><h3>Sign up and add your Google link</h3><p>Enter your business name and your Google review link. You get your QR code and a dashboard link by email.</p></li>
+    <li><h3>Put the QR code on your counter</h3><p>Print it or show it on a screen. Customers scan it with their phone camera. Nothing to download.</p></li>
+    <li><h3>Reviews come in, complaints stay private</h3><p>Happy customers post a review in one tap. Unhappy customers write to you directly, so you can fix it first.</p></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Made for small, busy businesses</h2>
+  <div class="feat">
+    <div><h3>AI writes the words</h3><p>Most people skip reviews because they don't know what to write. Your customer gets a natural, friendly draft they can edit.</p></div>
+    <div><h3>Protects your rating</h3><p>Unhappy customers are guided to message you, not to post a public complaint.</p></div>
+    <div><h3>No setup calls</h3><p>Sign up yourself. There are no installs, no staff training, and no hardware to buy.</p></div>
+    <div><h3>Your own dashboard</h3><p>See who is scanning and what feedback is coming in. Get your dashboard link again any time by email.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Get your QR code in 2 minutes.</h2>
+  <a class="btn go" href="#">Start free</a>
+</section>
+</main>
+
+<footer><span>© <span id="yr"></span> Review Kiosk</span><span>easemaddy.com</span></footer>
+</div>
+
+<script>
+// === PUT YOUR LIVE SIGNUP LINK HERE ===
+var SIGNUP_URL = "#";
+document.querySelectorAll(".go").forEach(function(a){a.href=SIGNUP_URL});
+document.getElementById("yr").textContent=new Date().getFullYear();
+
+var $=function(i){return document.getElementById(i)};
+var s=[$("s1"),$("s2"),$("s3")];
+var text="Friendly staff and quick service. I felt well looked after from the moment I walked in. Highly recommend!";
+var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function show(n){s.forEach(function(e,i){e.classList.toggle("on",i===n)})}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+async function loop(){
+  for(;;){
+    $("o1").classList.remove("pick");$("rev").textContent="";$("stars").classList.remove("full");$("post").classList.remove("ready");
+    show(0);await wait(2600);
+    show(1);await wait(1500);$("o1").classList.add("pick");await wait(900);
+    show(2);await wait(600);
+    for(var i=1;i<=text.length;i++){$("rev").innerHTML=text.slice(0,i)+"<b></b>";await wait(28)}
+    $("rev").textContent=text;$("stars").classList.add("full");await wait(400);$("post").classList.add("ready");
+    await wait(3200);
+  }
+}
+if(reduce){show(2);$("rev").textContent=text;$("stars").classList.add("full");$("post").classList.add("ready")}else{loop()}
+</script>
+</body>
+</html>
